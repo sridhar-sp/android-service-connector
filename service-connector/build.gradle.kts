@@ -115,7 +115,7 @@ jreleaser {
         active.set(org.jreleaser.model.Active.ALWAYS)
         armored.set(true)
         verify.set(true)
-        mode.set(org.jreleaser.model.Signing.Mode.COMMAND)
+        mode.set(org.jreleaser.model.Signing.Mode.MEMORY)
     }
 
     release {
