@@ -10,7 +10,7 @@ android {
     namespace = "io.github.sridhar_sp.service_connector"
     compileSdk = 36
 
-    version = "0.1.0"
+    version = "0.1.1"
 
     defaultConfig {
         minSdk = 21

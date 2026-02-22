@@ -5,7 +5,7 @@
 Add the following to your module-level `build.gradle`:
 
 ```groovy
-implementation("io.github.sridhar-sp:aidl-service-connector:0.1.0")
+implementation("io.github.sridhar-sp:aidl-service-connector:0.1.1")
 ```
 
 * For the latest version, visit
