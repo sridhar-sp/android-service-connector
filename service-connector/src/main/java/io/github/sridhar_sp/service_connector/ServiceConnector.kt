@@ -29,20 +29,59 @@ interface IServiceConnector<T> {
      * @param timeOutInMillis Maximum time to wait for the service to get connected,
      * returns null if service is not connected within the time.
      *
+     * If null is returned, which means the service did not connect within the given time. you can call `getService()` again to retry
+     *
      * If the [timeOutInMillis] is negative then [getService] will suspend until the service gets connected.
      */
     suspend fun getService(timeOutInMillis: Long = -1): T?
 
     suspend fun unbindService()
 
+    /**
+     * @return a Flow<ServiceConnectionStatus> that emits whenever the connection state between your client
+     * and the remote service changes. This is useful when your UI or business logic needs to react to the service
+     * lifecycle.
+     *
+     * For example, disabling a button when the service disconnects, or showing a reconnecting indicator when the
+     * binding dies.
+     */
     fun serviceConnectionStatus(): Flow<ServiceConnectionStatus>
 
     sealed class ServiceConnectionStatus {
+
+        /**
+         * The initial state before any connection attempt has been made.
+         */
         object None : ServiceConnectionStatus()
+
+        /**
+         * The service has successfully bound and the binder is available.
+         */
         object Connected : ServiceConnectionStatus()
+
+        /**
+         * The connection to the service was lost, typically because the remote process crashed or was killed.
+         */
         object Disconnected : ServiceConnectionStatus()
+
+        /**
+         * The service returned a `null` binder from `onBind`.
+         * If allowNullBinding is false (the default), this is treated as a failed connection.
+         */
         object NullBinding : ServiceConnectionStatus()
+
+        /**
+         * The binding itself has died and will not reconnect automatically. You should call `getService()` again to
+         * re-establish the connection.
+         *
+         * @see [ServiceConnection.onBindingDied]
+         */
         object BindingDied : ServiceConnectionStatus()
+
+        /**
+         * The underlying `IBinder` object died, reported via the `DeathRecipient` callback. Carries both the
+         * `linkedBinder` (the binder you originally received) and `diedBinder` (the one that died, if reported by the system).
+         */
         data class BinderDied(val linkedBinder: IBinder, val diedBinder: IBinder?) : ServiceConnectionStatus()
     }
 }
@@ -64,7 +103,8 @@ interface IServiceConnector<T> {
  *
  * @param context Context used to bind the service.
  * @param intent Explicit intent describing the service to connect.
- * @param transformBinderToService callback function called to transform the generic IBinder instance to the client-specific AIDL interface.
+ * @param transformBinderToService a callback that bridges the raw IBinder Android gives you and the typed AIDL
+ * interface your code actually wants to work with. Typically this is just a one-liner wrapping `YourAidlInterface.Stub.asInterface(binder)`
  * @param allowNullBinding Pass true to indicate to keep the server connected even if the server returns a null IBinder instance from the onBind method.
  * @param eventDispatcher CoroutineDispatcher used to dispatch the [ServiceConnectionStatus] on.
  */
