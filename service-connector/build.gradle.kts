@@ -10,7 +10,7 @@ android {
     namespace = "io.github.sridhar_sp.service_connector"
     compileSdk = 36
 
-    version = "0.1.1"
+    version = "0.1.2"
 
     defaultConfig {
         minSdk = 21
@@ -60,7 +60,7 @@ afterEvaluate {
 
                 pom {
                     name.set("aidl-service-connector")
-                    description.set("AIDL Service Connector Android library")
+                    description.set("Simplifies Android IPC by wrapping AIDL service binding into a clean, coroutine-friendly API.")
                     url.set("https://github.com/sridhar-sp/android-service-connector")
                     inceptionYear.set("2025")
 
