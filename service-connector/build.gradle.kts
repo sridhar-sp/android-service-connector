@@ -61,7 +61,7 @@ afterEvaluate {
                 pom {
                     name.set("aidl-service-connector")
                     description.set("AIDL Service Connector Android library")
-                    url.set("https://github.com/sridhar-sp/android-playground/tree/main/AIDL/service-connector")
+                    url.set("https://github.com/sridhar-sp/android-service-connector")
                     inceptionYear.set("2025")
 
                     licenses {
@@ -80,9 +80,9 @@ afterEvaluate {
                     }
 
                     scm {
-                        connection.set("scm:git:https://github.com/sridhar-sp/android-playground.git")
-                        developerConnection.set("scm:git:ssh://git@github.com:sridhar-sp/android-playground.git")
-                        url.set("https://github.com/sridhar-sp/android-playground/tree/main/AIDL/service-connector")
+                        connection.set("scm:git:https://github.com/sridhar-sp/android-service-connector.git")
+                        developerConnection.set("scm:git:ssh://git@github.com:sridhar-sp/android-service-connector.git")
+                        url.set("https://github.com/sridhar-sp/android-service-connector")
                     }
                 }
             }
