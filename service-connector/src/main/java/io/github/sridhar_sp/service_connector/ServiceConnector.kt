@@ -8,12 +8,10 @@ import android.os.IBinder
 import android.util.Log
 import io.github.sridhar_sp.service_connector.IServiceConnector.ServiceConnectionStatus
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -134,8 +132,6 @@ open class ServiceConnector<T>(
     override fun serviceConnectionStatus(): Flow<IServiceConnector.ServiceConnectionStatus> =
         serviceConnectionStatusFlow
 
-    private val eventDispatcherScope = CoroutineScope(eventDispatcher)
-
     override suspend fun getService(timeOutInMillis: Long): T? {
         // If allowNullBinding is true don't care what service object is
         if (serviceConnected && (allowNullBinding || service != null)) {
@@ -154,19 +150,19 @@ open class ServiceConnector<T>(
 
                 binder?.linkToDeath(DeathRecipientImpl(binder), 0)
 
-                eventDispatcherScope.launch { _serviceConnectionStatusFlow.emit(IServiceConnector.ServiceConnectionStatus.Connected) }
+                _serviceConnectionStatusFlow.value = ServiceConnectionStatus.Connected
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 cleanUpAndResumeIfRequired()
                 logD("service disconnected. name : $name")
-                eventDispatcherScope.launch { _serviceConnectionStatusFlow.emit(IServiceConnector.ServiceConnectionStatus.Disconnected) }
+                _serviceConnectionStatusFlow.value = ServiceConnectionStatus.Disconnected
             }
 
             override fun onBindingDied(name: ComponentName?) {
                 cleanUpAndResumeIfRequired()
                 logD("service onBindingDied. name $name")
-                eventDispatcherScope.launch { _serviceConnectionStatusFlow.emit(IServiceConnector.ServiceConnectionStatus.BindingDied) }
+                _serviceConnectionStatusFlow.value = ServiceConnectionStatus.BindingDied
             }
 
             override fun onNullBinding(name: ComponentName?) {
@@ -174,7 +170,7 @@ open class ServiceConnector<T>(
                 else cleanUpAndResumeIfRequired()
 
                 logD("service onNullBinding. name $name")
-                eventDispatcherScope.launch { _serviceConnectionStatusFlow.emit(IServiceConnector.ServiceConnectionStatus.NullBinding) }
+                _serviceConnectionStatusFlow.value = ServiceConnectionStatus.NullBinding
             }
 
             private fun resumeWithServiceInstance(binder: IBinder?) {
@@ -223,14 +219,10 @@ open class ServiceConnector<T>(
 
         private fun onBinderDied(who: IBinder? = null) {
             logD("binderDied who $who")
-            eventDispatcherScope.launch {
-                _serviceConnectionStatusFlow.emit(
-                    IServiceConnector.ServiceConnectionStatus.BinderDied(
-                        linkedBinder = linkedBinder,
-                        diedBinder = who
-                    )
-                )
-            }
+            _serviceConnectionStatusFlow.value = ServiceConnectionStatus.BinderDied(
+                linkedBinder = linkedBinder,
+                diedBinder = who
+            )
         }
     }
 
