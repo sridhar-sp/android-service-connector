@@ -143,7 +143,15 @@ open class ServiceConnector<T>(
     }
 
     private suspend fun bindAndGetService() = suspendCancellableCoroutine { continuation ->
-        if (lastServiceConnection != null) unbindService()
+        // If bind was called again, it could be either service was null or getService called again before previous
+        // one completes, so as and when one getService call resume, the another one resumes from mutex.withLock
+        if (lastServiceConnection != null) {
+            if (serviceConnected && (allowNullBinding || service != null)) {
+                continuation.resume(service)
+            } else
+                unbindService()
+            return@suspendCancellableCoroutine
+        }
 
         val serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
