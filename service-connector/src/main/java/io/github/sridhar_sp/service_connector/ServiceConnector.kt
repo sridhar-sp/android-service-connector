@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.os.UserHandle
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -107,6 +108,7 @@ open class ServiceConnector<T>(
     private val intent: Intent,
     val transformBinderToService: (service: IBinder?) -> T?,
     private val allowNullBinding: Boolean = false,
+    private val userHandle: UserHandle? = null
 ) : IServiceConnector<T> {
 
     private var serviceConnected = false
@@ -213,8 +215,10 @@ open class ServiceConnector<T>(
         }
 
         logD("Initiating bind service connection")
-        val status = context.bindService(
+        val status = if (userHandle == null) context.bindService(
             intent, serviceConnection, Context.BIND_AUTO_CREATE
+        ) else context.bindServiceAsUser(
+            intent, serviceConnection, Context.BIND_AUTO_CREATE, userHandle
         )
 
         if (!status) {
